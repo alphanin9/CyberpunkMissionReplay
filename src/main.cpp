@@ -1,6 +1,9 @@
 #include <RED4ext/RED4ext.hpp>
 #include <RedLib.hpp>
 
+#include <Config/ProjectTemplate.hpp>
+#include <Comms/ReplayComms.hpp>
+
 using namespace Red;
 
 namespace init {
@@ -16,7 +19,7 @@ namespace init {
 	RED4EXT_C_EXPORT void RED4EXT_CALL Query(PluginInfo* aInfo) {
 		aInfo->name = L"Mission Replay";
 		aInfo->author = L"not_alphanine";
-		aInfo->version = RED4EXT_SEMVER_EX(0, 0, 0, RED4EXT_V0_SEMVER_PRERELEASE_TYPE_ALPHA, 1);
+		aInfo->version = RED4EXT_SEMVER_EX(Build::Version.major, Build::Version.minor, Build::Version.patch, RED4EXT_V0_SEMVER_PRERELEASE_TYPE_ALPHA, 0);
 		aInfo->runtime = RED4EXT_RUNTIME_INDEPENDENT;
 		aInfo->sdk = RED4EXT_SDK_LATEST;
 	}
