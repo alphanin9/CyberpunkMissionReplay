@@ -1,5 +1,5 @@
 set_project("Mission Replay")
-set_version("0.0.0", {build="%YY%MM%DD%HH"})
+set_version("0.0.0", {build="%yy%mm%dd%H"})
 
 set_arch("x64")
 set_languages("c++latest")
