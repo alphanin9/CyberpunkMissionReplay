@@ -1,5 +1,5 @@
 set_project("Mission Replay")
-set_version("0.0.0", {build="%y%m%d%H%M"})
+set_version("0.0.0", {build="%YY%MM%DD%HH"})
 
 set_arch("x64")
 set_languages("c++latest")
@@ -16,6 +16,7 @@ set_runtimes("MD")
 add_requires("minhook", "semver")
 
 local cp2077_path = os.getenv("CP2077_PATH")
+local plugin_folder_path = "red4ext/plugins/MissionReplay"
 
 target("Mission Replay")
     set_default(true)
@@ -37,34 +38,39 @@ target("Mission Replay")
     set_configvar("AUTHOR_NAME", "not_alphanine")
     set_rundir(path.join(cp2077_path, "bin", "x64"))
     on_package(function(target)
-        --[[
+        -- Most of this is disabled for now due to the plugin not being ready
         os.rm("packaging/*")
         os.rm("packaging_pdb/*")
 
-        os.mkdir("packaging/red4ext/plugins/MissionReplay")
-        os.mkdir("packaging/red4ext/plugins/MissionReplay/redscript")
-        os.mkdir("packaging/red4ext/plugins/MissionReplay/tweaks")
+        local packaging_dir = path.join("packaging", plugin_folder_path)
+        local pdb_packaging_dir = path.join("packaging_pdb", plugin_folder_path)
 
-        os.cp("LICENSE", "packaging/red4ext/plugins/MissionReplay")
-        os.cp("THIRDPARTY_LICENSES", "packaging/red4ext/plugins/MissionReplay")
+        local scripts_dir = path.join(packaging_dir, "scripts")
+        local tweaks_dir = path.join(packaging_dir, "tweaks")
 
-        os.cp("wolvenkit/packed/archive/pc/mod/*", "packaging/red4ext/plugins/MissionReplay")
-        os.cp("scripting/*", "packaging/red4ext/plugins/NewGamePlus/redscript")
-        os.cp("tweaks/*", "packaging/red4ext/plugins/NewGamePlus/tweaks")
+        os.mkdir(packaging_dir)
+        -- os.mkdir(scripts_dir)
+        -- os.mkdir(tweaks_dir)
+
+        os.cp("LICENSE", packaging_dir)
+        os.cp("THIRDPARTY_LICENSES", packaging_dir)
+
+        -- os.cp("wolvenkit/packed/archive/pc/mod/*", packaging_dir)
+        -- os.cp("scripts/*", scripts_dir)
+        -- os.cp("tweaks/*", tweaks_dir)
         
         local target_file = target:targetfile()
 
-        os.cp(target_file, "packaging/red4ext/plugins/NewGamePlus")
-        os.mkdir("packaging_pdb/red4ext/plugins/NewGamePlus")
+        os.cp(target_file, packaging_dir)
+        os.mkdir(pdb_packaging_dir)
 
         os.cp(path.join(
             path.directory(target_file),
             path.basename(target_file)..".pdb" -- Evil hack
-        ), "packaging_pdb/red4ext/plugins/NewGamePlus")
-        ]]
+        ), pdb_packaging_dir)
     end)
     on_install(function(target)
-        local plugin_folder = path.join(cp2077_path, "red4ext/plugins/MissionReplay")
+        local plugin_folder = path.join(cp2077_path, plugin_folder_path)
 
         os.mkdir(plugin_folder)
 
