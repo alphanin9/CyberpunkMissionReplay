@@ -70,7 +70,7 @@ void replay::ReplayManager::OnUninitialize()
     replay::Comms::Remove();
 }
 
-void replay::ReplayManager::AddRequest(EReplayRequestType aRequest)
+void replay::ReplayManager::AddRequest(EReplayRequestType aRequest) noexcept
 {
     std::unique_lock _(m_requestLock);
     m_requests.PushBack(aRequest);
