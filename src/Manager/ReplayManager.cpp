@@ -1,7 +1,7 @@
 #include "ReplayManager.hpp"
 
-#include <RED4ext/Scripting/Natives/Generated/game/ui/CharacterCustomizationSystem.hpp>
 #include <RED4ext/Scripting/Natives/Generated/game/TelemetryTelemetrySystem.hpp>
+#include <RED4ext/Scripting/Natives/Generated/game/ui/CharacterCustomizationSystem.hpp>
 #include <Session/SessionLoader.hpp>
 #include <Util/Core.hpp>
 
@@ -19,14 +19,61 @@ void replay::ReplayManager::OnGamePrepared()
     }
 }
 
+void replay::ReplayManager::Tick(JobQueue& aQueue) noexcept
+{
+    DynArray<EReplayRequestType> requests{};
+    {
+        std::unique_lock _(m_requestLock);
+        requests = std::move(m_requests);
+        m_requests = DynArray<EReplayRequestType>();
+    }
+
+    for (auto request : requests)
+    {
+        switch (request)
+        {
+        case EReplayRequestType::ReplayStarted:
+            aQueue.Dispatch(
+                [this]()
+                {
+                    SetupQuestState();
+                    SetupPlayerData();
+                    SetupInventory();
+
+                    // Tell quests system we're good and can continue
+                });
+            break;
+        case EReplayRequestType::ReplayEnded:
+            aQueue.Dispatch(
+                [this]() {
+
+                });
+            break;
+        }
+    }
+}
+
+void replay::ReplayManager::OnRegisterUpdates(UpdateRegistrar* aRegistrar)
+{
+    // Update after quests system, makes more sense
+    aRegistrar->RegisterUpdate(UpdateTickGroup::PostBuckets, this, "ReplayManager/Tick",
+                               [this](FrameInfo& aInfo, JobQueue& aQueue) { Tick(aQueue); });
+}
+
 void replay::ReplayManager::OnInitialize(const JobHandle& aJobHandle)
 {
-    ReplayComms::Setup();
+    replay::Comms::Setup();
 }
 
 void replay::ReplayManager::OnUninitialize()
 {
-    ReplayComms::Remove();
+    replay::Comms::Remove();
+}
+
+void replay::ReplayManager::AddRequest(EReplayRequestType aRequest)
+{
+    std::unique_lock _(m_requestLock);
+    m_requests.PushBack(aRequest);
 }
 
 void replay::ReplayManager::CapturePointOfNoReturnId() noexcept
@@ -35,12 +82,12 @@ void replay::ReplayManager::CapturePointOfNoReturnId() noexcept
     {
         CString GetPointOfNoReturnID()
         {
-            return Util::OffsetPtr<0xD8, CString>::Ref(this);
+            return util::OffsetPtr<0xD8, CString>::Ref(this);
         }
     };
 
     auto telemetrySystem = GetGameSystem<TelemetrySystem>();
-    auto dataContainer = Util::OffsetPtr<184, TelemetryDataContainer>::Ptr(telemetrySystem);
+    auto dataContainer = util::OffsetPtr<184, TelemetryDataContainer>::Ptr(telemetrySystem);
 
     if (!dataContainer)
     {
@@ -53,22 +100,19 @@ void replay::ReplayManager::CapturePointOfNoReturnId() noexcept
 
 void replay::ReplayManager::OnReplayCommsStart() noexcept
 {
-    // Checkpoint node is called, do something
+    // Checkpoint node sent us a request, do sth
 }
 
 void replay::ReplayManager::SetupQuestState() noexcept
 {
-
 }
 
 void replay::ReplayManager::SetupPlayerData() noexcept
 {
-
 }
 
 void replay::ReplayManager::SetupInventory() noexcept
 {
-
 }
 
 ResourcePath replay::ReplayManager::GetGameDefinition(EReplayGameDefinition aDefinition) noexcept
@@ -89,7 +133,7 @@ void replay::ReplayManager::StartReplayGameDefinition(EReplayGameDefinition aDef
     auto characterCustomizationSystem = GetGameSystem<game::ui::CharacterCustomizationSystem>();
 
     auto& characterCustomizationState =
-        Util::OffsetPtr<0x78, Handle<game::ui::ICharacterCustomizationState>>::Ref(characterCustomizationSystem);
+        util::OffsetPtr<0x78, Handle<game::ui::ICharacterCustomizationState>>::Ref(characterCustomizationSystem);
 
     session::GameLoader::GameDefinitionLoaderParams params{};
 

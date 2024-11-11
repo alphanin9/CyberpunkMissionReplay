@@ -10,18 +10,18 @@
 #include <Raw/Ink/InkSystem.hpp>
 #include <Raw/Quest/FactsDB.hpp>
 
-void ReplayComms::Setup() noexcept
+void replay::Comms::Setup() noexcept
 {
-    Hooks::HookingAgent::HookWrap<raw::Quest::FactsDBManager::Execute>(&OnFactsDBManagerNodeDefinition)
+    hook::HookWrap<raw::Quest::FactsDBManager::Execute>(&OnFactsDBManagerNodeDefinition)
         .OrDie("Failed to hook FactsDBManager::Execute");
 }
 
-void ReplayComms::Remove() noexcept
+void replay::Comms::Remove() noexcept
 {
-    Hooks::HookingAgent::Unhook<raw::Quest::FactsDBManager::Execute>();
+    hook::Unhook<raw::Quest::FactsDBManager::Execute>();
 }
 
-char ReplayComms::OnFactsDBManagerNodeDefinition(raw::Quest::FactsDBManager::ExecuteType aCallback,
+char replay::Comms::OnFactsDBManagerNodeDefinition(raw::Quest::FactsDBManager::ExecuteType aCallback,
                                                  quest::NodeDefinition* aThis, void* aCtx, int64_t a3,
                                                  DynArray<CName>& aOutSockets)
 {

@@ -46,30 +46,30 @@ struct InkSystem
 RED4EXT_ASSERT_OFFSET(InkSystem, m_requestsHandler, 0x368);
 RED4EXT_ASSERT_OFFSET(InkSystem, m_layerManagers, 0x378);
 
-constexpr auto InkSystemInstance = Util::RawPtr<UsedAddressHashes::InkSystem_Instance, InkSystem*>();
+constexpr auto InkSystemInstance = util::RawPtr<UsedAddressHashes::InkSystem_Instance, InkSystem*>();
 
 namespace SystemRequestsHandler
 {
-using InputDeviceId = Util::OffsetPtr<0x570, std::uint64_t>;
-constexpr auto StartSession = Util::RawFunc<UsedAddressHashes::InkSystemRequestsHandler_StartSession,
+using InputDeviceId = util::OffsetPtr<0x570, std::uint64_t>;
+constexpr auto StartSession = util::RawFunc<UsedAddressHashes::InkSystemRequestsHandler_StartSession,
                                             void* (*)(ink::ISystemRequestsHandler*, void*)>();
-constexpr auto ExitToMenu = Util::RawFunc<UsedAddressHashes::InkSystemRequestsHandler_ExitToMainMenu,
+constexpr auto ExitToMenu = util::RawFunc<UsedAddressHashes::InkSystemRequestsHandler_ExitToMainMenu,
                                           void* (*)(ink::ISystemRequestsHandler*)>();
 }; // namespace SystemRequestsHandler
 
 namespace LoadingScreen
 {
 constexpr auto SetUnknownVarInInitialLoadingScreen =
-    Util::RawFunc<UsedAddressHashes::InkLoadingLayer_SetUnknownVar, void (*)(void*, uint32_t)>();
+    util::RawFunc<UsedAddressHashes::InkLoadingLayer_SetUnknownVar, void (*)(void*, uint32_t)>();
 
-using LoadingScreenTDBID = Util::OffsetPtr<0x208, TweakDBID>;
+using LoadingScreenTDBID = util::OffsetPtr<0x208, TweakDBID>;
 };
 
 namespace SessionData
 {
 constexpr auto AddArgument =
-    Util::RawFunc<UsedAddressHashes::SessionData_AddArgumentToList,
+    util::RawFunc<UsedAddressHashes::SessionData_AddArgumentToList,
                   void* (*)(DynArray<SharedPtr<ISerializable>>&, CName, CBaseRTTIType*, void*)>();
-constexpr auto Dtor = Util::RawFunc<UsedAddressHashes::SessionData_dtor, void* (*)(void*)>();
+constexpr auto Dtor = util::RawFunc<UsedAddressHashes::SessionData_dtor, void* (*)(void*)>();
 }; // namespace SessionData
 }; // namespace raw::Ink

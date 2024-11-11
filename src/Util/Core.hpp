@@ -4,7 +4,7 @@
 #include <RED4ext/RED4ext.hpp>
 
 // Borrowed from https://github.com/psiberx/cp2077-codeware/blob/main/lib/Core/Raw.hpp as I am very lazy
-namespace Util
+namespace util
 {
 class RawBase
 {

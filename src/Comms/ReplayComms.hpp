@@ -7,7 +7,7 @@
 #include <Raw/Quest/NodeFuncs.hpp>
 
 using namespace Red;
-namespace ReplayComms
+namespace replay::Comms
 {
 void Setup() noexcept;
 void Remove() noexcept;

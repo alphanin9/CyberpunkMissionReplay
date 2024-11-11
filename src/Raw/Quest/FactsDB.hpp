@@ -1,9 +1,9 @@
 #pragma once
 #include <RED4ext/RED4ext.hpp>
 #include <RedLib.hpp>
-
-#include <cstdint>
 #include <Util/Core.hpp>
+
+using namespace Red;
 
 namespace raw
 {
@@ -27,7 +27,7 @@ struct FactKey
 struct FactStore
 {
     std::uint64_t unk00;
-    Red::Map<FactKey, int> m_data;
+    Map<FactKey, int> m_data;
 };
 
 struct FactsDBManager
@@ -56,6 +56,6 @@ struct FactsDBManager
 
 namespace Quest
 {
-using FactsDB = Util::OffsetPtr<0xF8, Facts::FactsDBManager*>;
+using FactsDB = util::OffsetPtr<0xF8, Facts::FactsDBManager*>;
 }
 } // namespace raw

@@ -7,7 +7,7 @@
 
 namespace raw::Assert
 {
-constexpr auto RaiseAssertion = Util::RawFunc < UsedAddressHashes::Assert_RaiseAssert,
+constexpr auto RaiseAssertion = util::RawFunc < UsedAddressHashes::Assert_RaiseAssert,
                void *(*)(const char* aSourceFile, int aSourceLineIndex, const char* aSourceLine,
                          const char* aAssertFmtStr)>();
 template<typename... Args>

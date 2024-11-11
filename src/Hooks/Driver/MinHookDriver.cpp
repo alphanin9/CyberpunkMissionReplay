@@ -2,30 +2,30 @@
 
 #include "MinHookDriver.hpp"
 
-Hooks::MinHookDriver::MinHookDriver()
+hook::MinHookDriver::MinHookDriver()
 {
     MH_Initialize();
 }
 
-Hooks::MinHookDriver::~MinHookDriver()
+hook::MinHookDriver::~MinHookDriver()
 {
     MH_DisableHook(MH_ALL_HOOKS);
     MH_Uninitialize();
 }
 
-Hooks::MinHookDriver& Hooks::MinHookDriver::Get() noexcept
+hook::MinHookDriver& hook::MinHookDriver::Get() noexcept
 {
     static MinHookDriver instance{};
 
     return instance;
 }
 
-bool Hooks::MinHookDriver::Attach(uintptr_t aAddr, void* aDetour) const noexcept
+bool hook::MinHookDriver::Attach(uintptr_t aAddr, void* aDetour) const noexcept
 {
     return Attach(aAddr, aDetour, nullptr);
 }
 
-bool Hooks::MinHookDriver::Attach(uintptr_t aAddr, void* aDetour, void** aOriginalFn) const noexcept
+bool hook::MinHookDriver::Attach(uintptr_t aAddr, void* aDetour, void** aOriginalFn) const noexcept
 {
     if (MH_CreateHook(reinterpret_cast<void*>(aAddr), aDetour, aOriginalFn) != MH_OK)
         return false;
@@ -39,7 +39,7 @@ bool Hooks::MinHookDriver::Attach(uintptr_t aAddr, void* aDetour, void** aOrigin
     return true;
 }
 
-bool Hooks::MinHookDriver::Detach(uintptr_t aAddr) const noexcept
+bool hook::MinHookDriver::Detach(uintptr_t aAddr) const noexcept
 {
     return MH_DisableHook(reinterpret_cast<void*>(aAddr)) == MH_OK &&
            MH_RemoveHook(reinterpret_cast<void*>(aAddr)) == MH_OK;

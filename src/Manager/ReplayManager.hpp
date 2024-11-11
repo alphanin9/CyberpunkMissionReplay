@@ -12,13 +12,25 @@ enum class EReplayGameDefinition : int
     BossRush = 1
 };
 
+enum class EReplayRequestType
+{
+    ReplayStarted,
+    ReplayEnded
+};
+
 class ReplayManager : public IGameSystem
 {
     SharedSpinLock m_replayLock{};
+
+    SharedSpinLock m_requestLock{};
+    DynArray<EReplayRequestType> m_requests{};
+
     CString m_pointOfNoReturnId{};
     bool m_isLoadingReplay{};
 
     ResourcePath GetGameDefinition(EReplayGameDefinition aDefinition) noexcept;
+
+    void AddRequest(EReplayRequestType aRequest) noexcept;
 
     // Setup correct quest state based on options
     void SetupQuestState() noexcept;
@@ -28,8 +40,12 @@ class ReplayManager : public IGameSystem
 
     // Setup correct inventory based on options, ignored in case of progression build
     void SetupInventory() noexcept;
+
+    void Tick(JobQueue& aQueue) noexcept;
 public:
     void OnGamePrepared() override;
+    void OnRegisterUpdates(UpdateRegistrar* aRegistrar) override;
+
     void OnInitialize(const JobHandle& aJob) override;
     void OnUninitialize() override;
 

@@ -14,13 +14,13 @@ namespace raw::Quest
 {
 namespace SetNextLoadingScreen
 {
-constexpr auto Execute = Util::RawFunc<UsedAddressHashes::Quest_SetSaveDataLoadingScreen_NodeType_ExecuteNode,
+constexpr auto Execute = util::RawFunc<UsedAddressHashes::Quest_SetSaveDataLoadingScreen_NodeType_ExecuteNode,
                                        char (*)(quest::SetSaveDataLoadingScreen_NodeType* aThis)>();
 }
 namespace FactsDBManager
 {
 using ExecuteType = char (*)(quest::NodeDefinition* aThis, void* aCtx, int64_t a3, DynArray<CName>& aOutSockets);
 constexpr auto Execute =
-    Util::RawFunc<UsedAddressHashes::Quest_FactsDBManagerNodeDefinition_ExecuteNode, ExecuteType>();
+    util::RawFunc<UsedAddressHashes::Quest_FactsDBManagerNodeDefinition_ExecuteNode, ExecuteType>();
 } // namespace FactsDBManager
 } // namespace raw::Quest

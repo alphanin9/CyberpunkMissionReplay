@@ -13,6 +13,7 @@ namespace raw
 {
 namespace GameDefinition
 {
-	constexpr auto ToWorldID = Util::RawFunc<UsedAddressHashes::GameDefinition_ToWorldID, world::WorldID*(*)(gsm::GameDefinition*, world::WorldID*)>();
+constexpr auto ToWorldID = util::RawFunc<UsedAddressHashes::GameDefinition_ToWorldID,
+                                         world::WorldID* (*)(gsm::GameDefinition*, world::WorldID*)>();
 };
 }; // namespace raw::gsm
