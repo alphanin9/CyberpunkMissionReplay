@@ -10,6 +10,8 @@
 #include <Raw/Ink/InkSystem.hpp>
 #include <Raw/Quest/FactsDB.hpp>
 
+#include <Manager/ReplayManager.hpp>
+
 void replay::Comms::Setup() noexcept
 {
     hook::HookWrap<raw::Quest::FactsDBManager::Execute>(&OnFactsDBManagerNodeDefinition)
@@ -51,18 +53,18 @@ char replay::Comms::OnFactsDBManagerNodeDefinition(raw::Quest::FactsDBManager::E
 
             if (factName == c_replayInitCommand)
             {
-                // TODO
-                raw::Quest::FactsDB(GetGameSystem<quest::QuestsSystem>())->SetFact("replay_init_finished", 1);
+                std::unique_lock _(s_replayRequestLock);
+                s_replayRequests.PushBack(EReplayRequestType::ReplayStarted);
 
-                aOutSockets.PushBack("Out");
+                aOutSockets.PushBack("ReplayInit");
                 return 0;
             }
             else if (factName == c_replayExitCommand)
             {
-                // TODO
-                raw::Ink::SystemRequestsHandler::ExitToMenu(raw::Ink::InkSystem::Get()->m_requestsHandler.Lock());
+                std::unique_lock _(s_replayRequestLock);
+                s_replayRequests.PushBack(EReplayRequestType::ReplayEnded);
 
-                aOutSockets.PushBack("Out");
+                aOutSockets.PushBack("ReplayExit");
                 return 0;
             }
         }

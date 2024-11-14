@@ -7,8 +7,21 @@
 
 #include <Comms/ReplayComms.hpp>
 
+#include <RED4ext/Scripting/Natives/Generated/quest/QuestsSystem.hpp>
+#include <Raw/Quest/FactsDB.hpp>
+
+#include <Raw/PlayerSystem/PlayerSystem.hpp>
+#include <Raw/ScriptableSystem/ScriptableSystem.hpp>
+
+#include <RED4ext/Scripting/Natives/Generated/quest/SetProgressionBuildRequest.hpp>
+
 void replay::ReplayManager::OnGamePrepared()
 {
+    m_playerSystem = GetGameSystem<cp::PlayerSystem>();
+    m_scriptableSystemsContainer = GetGameSystem<game::ScriptableSystemsContainer>();
+    m_questsSystem = GetGameSystem<quest::QuestsSystem>();
+    m_inkSystem = raw::Ink::InkSystem::Get();
+
     // Placeholder, will be used for adding save PONR ID to persistent state
     if (m_isLoadingReplay)
     {
@@ -19,13 +32,21 @@ void replay::ReplayManager::OnGamePrepared()
     }
 }
 
+void replay::ReplayManager::OnWorldDetached(world::RuntimeScene* aScene)
+{
+    m_questsSystem = nullptr;
+    m_playerSystem = nullptr;
+    m_scriptableSystemsContainer = nullptr;
+    // No point cleaning up ink system, it'll be the same throughout the game anyway
+}
+
 void replay::ReplayManager::Tick(JobQueue& aQueue) noexcept
 {
     DynArray<EReplayRequestType> requests{};
     {
-        std::unique_lock _(m_requestLock);
-        requests = std::move(m_requests);
-        m_requests = DynArray<EReplayRequestType>();
+        std::unique_lock _(Comms::s_replayRequestLock);
+        requests = std::move(Comms::s_replayRequests);
+        Comms::s_replayRequests = DynArray<EReplayRequestType>();
     }
 
     for (auto request : requests)
@@ -36,17 +57,28 @@ void replay::ReplayManager::Tick(JobQueue& aQueue) noexcept
             aQueue.Dispatch(
                 [this]()
                 {
+                    if (!m_questsSystem)
+                    {
+                        return;
+                    }
+
                     SetupQuestState();
                     SetupPlayerData();
                     SetupInventory();
 
                     // Tell quests system we're good and can continue
+                    raw::Quest::FactsDB(m_questsSystem)->SetFact("replay_init_finished", 1);
                 });
             break;
         case EReplayRequestType::ReplayEnded:
             aQueue.Dispatch(
-                [this]() {
-
+                [this]()
+                {
+                    if (m_inkSystem)
+                    {
+                        raw::Ink::SystemRequestsHandler::ExitToMenu(m_inkSystem->m_requestsHandler.Lock());
+                    }
+                    // TODO: match with PONR ID
                 });
             break;
         }
@@ -68,12 +100,6 @@ void replay::ReplayManager::OnInitialize(const JobHandle& aJobHandle)
 void replay::ReplayManager::OnUninitialize()
 {
     replay::Comms::Remove();
-}
-
-void replay::ReplayManager::AddRequest(EReplayRequestType aRequest) noexcept
-{
-    std::unique_lock _(m_requestLock);
-    m_requests.PushBack(aRequest);
 }
 
 void replay::ReplayManager::CapturePointOfNoReturnId() noexcept
@@ -98,17 +124,56 @@ void replay::ReplayManager::CapturePointOfNoReturnId() noexcept
     m_pointOfNoReturnId = dataContainer->GetPointOfNoReturnID();
 }
 
-void replay::ReplayManager::OnReplayCommsStart() noexcept
-{
-    // Checkpoint node sent us a request, do sth
-}
-
 void replay::ReplayManager::SetupQuestState() noexcept
 {
+    DynArray<Handle<ReplayFactDefinition>> facts{};
+
+    {
+        std::unique_lock _(m_replayLock);
+        facts = std::move(m_definedQuestState);
+        m_definedQuestState = {};
+    }
+
+    auto& factsDB = raw::Quest::FactsDB::Ref(m_questsSystem);
+
+    for (auto& fact : facts)
+    {
+        factsDB.SetFact(fact->m_factName.c_str(), fact->m_factValue);
+    }
 }
 
 void replay::ReplayManager::SetupPlayerData() noexcept
 {
+    // Player data is not currently setup for testing
+    if (c_useStaticProgressionBuild)
+    {
+        Handle<game::Object> playerObject{};
+
+        raw::PlayerSystem::GetPlayerControlledGameObject(m_playerSystem, playerObject);
+
+        if (!playerObject)
+        {
+            return;
+        }
+
+        Handle<game::ScriptableSystem> playerDevelopmentSystem{};
+
+
+        raw::ScriptableSystemsContainer::GetSystemByName(m_scriptableSystemsContainer, playerDevelopmentSystem,
+                                                         "PlayerDevelopmentSystem");
+
+        if (!playerDevelopmentSystem)
+        {
+            return;
+        }
+
+        auto setProgressionBuildReq = MakeHandle<quest::SetProgressionBuildRequest>();
+
+        setProgressionBuildReq->owner = playerObject;
+        setProgressionBuildReq->buildID = c_debugProgressionBuildTDBID;
+
+        raw::ScriptableSystem::QueueRequest(playerDevelopmentSystem, setProgressionBuildReq);
+    }
 }
 
 void replay::ReplayManager::SetupInventory() noexcept
@@ -120,7 +185,7 @@ ResourcePath replay::ReplayManager::GetGameDefinition(EReplayGameDefinition aDef
     switch (aDefinition)
     {
     case EReplayGameDefinition::ReplayTestGameDefinition:
-        return R"(mod\replay\test\replay_000_test.gamedef)";
+        return R"(mod\quest\replay\q113\replay_q113.gamedef)";
     case EReplayGameDefinition::BossRush:
         return R"(mod\quest\replay\boss_rush\replay_boss_rush.gamedef)";
     default:
@@ -146,5 +211,21 @@ void replay::ReplayManager::StartReplayGameDefinition(EReplayGameDefinition aDef
     session::GameLoader::LoadGameDefinitionByPath(params);
 }
 
+void replay::ReplayManager::SetQuestState(DynArray<Handle<ReplayFactDefinition>>& aFacts)
+{
+    std::unique_lock _(m_replayLock);
+    m_definedQuestState = aFacts; // IDK if we can std::move here without breaking Redscript/Redlib
+}
+
 RTTI_DEFINE_ENUM(replay::EReplayGameDefinition);
-RTTI_DEFINE_CLASS(replay::ReplayManager, { RTTI_METHOD(StartReplayGameDefinition); });
+RTTI_DEFINE_CLASS(replay::ReplayManager, {
+    RTTI_METHOD(StartReplayGameDefinition);
+    RTTI_METHOD(SetQuestState);
+});
+
+RTTI_DEFINE_CLASS(replay::ReplayFactDefinition, {
+    RTTI_METHOD(SetFactName);
+    RTTI_METHOD(SetFactValue);
+    RTTI_GETTER(m_factName);
+    RTTI_GETTER(m_factValue);
+})

@@ -47,12 +47,6 @@ void session::GameLoader::LoadSavedGameByName(StringView aSaveName) noexcept
 
     game::GameSessionDesc sessionDesc{};
 
-    sessionDesc.unk38 = true;
-    sessionDesc.unk40 = 7u;
-    sessionDesc.unk44 = 257u;
-    sessionDesc.unk68 = std::numeric_limits<std::uint32_t>::max();
-    sessionDesc.playerSpawnParams.spawnPoint.orientation.r = 1.0f;
-
     sessionDesc.saveName = aSaveName.Data();
 
     data.AddArgument("gameSessionDesc", &sessionDesc);
@@ -63,9 +57,6 @@ void session::GameLoader::LoadSavedGameByName(StringView aSaveName) noexcept
 
 void session::GameLoader::LoadGameDefinitionByPath(GameDefinitionLoaderParams aParams) noexcept
 {
-    // TODO: set up loading screen like game does it
-    // Looks like shared ptr/handle ctor somewhere in StartNewGame with TDBID set ptr + 8
-
     ResourceLoader::Get()
         ->LoadAsync(aParams.m_path)
         ->OnLoaded(
@@ -74,17 +65,6 @@ void session::GameLoader::LoadGameDefinitionByPath(GameDefinitionLoaderParams aP
                 if (auto& definition = Cast<gsm::GameDefinition>(aResource))
                 {
                     game::GameSessionDesc sessionDesc{};
-
-                    // These need to be set up for things to go right
-
-                    sessionDesc.unk38 = true;
-                    sessionDesc.unk3C = 0u;
-                    sessionDesc.unk40 = 7u;
-                    sessionDesc.unk44 = 257u;
-                    sessionDesc.unk68 = std::numeric_limits<std::uint32_t>::max();
-
-                    sessionDesc.playerSpawnParams.spawnPoint.orientation.r = 1.0f;
-
                     raw::GameDefinition::ToWorldID(definition, &sessionDesc.worldId);
 
                     for (auto& quest : definition->mainQuests)
@@ -105,7 +85,8 @@ void session::GameLoader::LoadGameDefinitionByPath(GameDefinitionLoaderParams aP
                     if (aParams.m_characterCustomizationState)
                     {
                         sessionDesc.characterCustomizationState =
-                            MakeScriptedHandle<game::ui::CharacterCustomizationState>(GetClass<game::ui::CharacterCustomizationState>());
+                            MakeScriptedHandle<game::ui::CharacterCustomizationState>(
+                                GetClass<game::ui::CharacterCustomizationState>());
                         sessionDesc.characterCustomizationState->GetType()->Assign(
                             sessionDesc.characterCustomizationState.instance,
                             aParams.m_characterCustomizationState.instance);

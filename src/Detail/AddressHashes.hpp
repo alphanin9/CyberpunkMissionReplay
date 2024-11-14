@@ -18,7 +18,19 @@ constexpr auto InkSystemRequestsHandler_ExitToMainMenu = 3105624475u;
 
 constexpr auto InkLoadingScreenHandler_SetUnknownVar = 3771669141u;
 constexpr auto InkLoadingLayer_SetUnknownVar = 1370036335u;
-#pragma endregion Ink
+#pragma endregion
+
+#pragma region PlayerSystem
+constexpr auto PlayerSystem_GetPlayerControlledGameObject = 3420005096u;
+#pragma endregion
+
+#pragma region ScriptableSystem
+constexpr auto ScriptableSystem_QueueRequest = 376512876u;
+#pragma endregion
+
+#pragma region ScriptableSystemsContainer
+constexpr auto ScriptableSystemsContainer_GetSystemByName = 655630607u;
+#pragma endregion
 
 #pragma region Session
 constexpr auto SessionData_dtor = 3460762581u;
