@@ -26,7 +26,10 @@ target("Mission Replay")
     add_files("src/**.cpp", "src/**.rc")
     add_headerfiles("src/**.hpp")
     add_includedirs("src/")
-    add_deps("red4ext.sdk", "redlib")
+
+    includes("deps/sharedpunk/xmake.lua")
+    add_deps("red4ext.sdk", "redlib", "cp2077-shared-data")
+
     add_packages("minhook", "semver")
     add_syslinks("Version", "User32")
     add_defines("WINVER=0x0601", "WIN32_LEAN_AND_MEAN", "NOMINMAX")

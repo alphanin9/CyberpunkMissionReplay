@@ -4,3 +4,6 @@
 [submodule "deps/redlib"]
 	path = deps/redlib
 	url = https://github.com/psiberx/cp2077-red-lib.git
+[submodule "deps/sharedpunk"]
+	path = deps/sharedpunk
+	url = https://github.com/alphanin9/SharedPunk.git
