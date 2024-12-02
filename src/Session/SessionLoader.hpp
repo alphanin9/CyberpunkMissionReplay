@@ -9,14 +9,11 @@
 #include <RED4ext/Scripting/Natives/Generated/ink/ISystemRequestsHandler.hpp>
 #include <RED4ext/Scripting/Natives/worldWorldID.hpp>
 
-#include <Raw/Ink/InkSystem.hpp>
 
 using namespace Red;
 
 namespace session
 {
-struct SessionData;
-
 namespace GameLoader
 {
 // Params for game definition loader
@@ -31,34 +28,7 @@ struct GameDefinitionLoaderParams
     Handle<game::ui::CharacterCustomizationState> m_characterCustomizationState{};
 };
 
-WeakHandle<ink::ISystemRequestsHandler> GetSystemRequestsHandler() noexcept;
-
 void LoadSavedGameByName(StringView aSaveName) noexcept;
 void LoadGameDefinitionByPath(GameDefinitionLoaderParams aParams) noexcept;
 } // namespace GameLoader
-
-enum class ESessionUnkEnum : std::uint8_t
-{
-    Unk1 = 3u
-};
-
-struct SessionData
-{
-    ESessionUnkEnum m_unk{}; // 00
-
-    CString m_sessionName{};             // 08, set to "Session" in most of our usecases
-    Handle<ISerializable> m_unkHandle{}; // 28, NULL during our usecase
-
-    DynArray<SharedPtr<ISerializable>> m_arguments{}; // 38, has various args set inside of it
-    // ISerializable type for this is actually wrong but w/e
-
-    SessionData() noexcept;
-    ~SessionData() noexcept;
-
-    template<typename ObjectType>
-    inline void AddArgument(CName aArg, ObjectType* aObject) noexcept
-    {
-        raw::Ink::SessionData::AddArgument(m_arguments, aArg, Red::GetType<ObjectType>(), aObject);
-    }
-};
 } // namespace session

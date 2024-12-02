@@ -11,39 +11,21 @@
 #include <RED4ext/Scripting/Natives/gameGameSessionDesc.hpp>
 #include <RED4ext/Scripting/Natives/worldWorldID.hpp>
 
-#include <Detail/AddressHashes.hpp>
-#include <Raw/GameDefinition/GameDefinition.hpp>
-#include <Raw/Ink/InkSystem.hpp>
-#include <Raw/Quest/NodeFuncs.hpp>
-#include <Util/Core.hpp>
+#include <Shared/Raw/GameDefinition/GameDefinition.hpp>
+#include <Shared/Raw/Ink/InkSystem.hpp>
+#include <Shared/Raw/Quest/NodeFuncs.hpp>
+#include <Shared/Util/Core.hpp>
 
 #include "SessionLoader.hpp"
 
 using namespace Red;
 
-session::SessionData::~SessionData() noexcept
-{
-    raw::Ink::SessionData::Dtor(this);
-}
-
-session::SessionData::SessionData() noexcept
-    : m_unk(ESessionUnkEnum::Unk1)
-    , m_sessionName("Session")
-    , m_arguments()
-{
-}
-
-WeakHandle<ink::ISystemRequestsHandler> session::GameLoader::GetSystemRequestsHandler() noexcept
-{
-    return raw::Ink::InkSystem::Get()->m_requestsHandler;
-}
-
 void session::GameLoader::LoadSavedGameByName(StringView aSaveName) noexcept
 {
-    SessionData data{};
+    shared::raw::Ink::SessionData::Data data{};
 
-    auto handler = GetSystemRequestsHandler().Lock();
-    auto inputDeviceId = raw::Ink::SystemRequestsHandler::InputDeviceId::Ref(handler);
+    auto handler = shared::raw::Ink::InkSystem::Get()->m_requestsHandler.Lock();
+    auto inputDeviceId = shared::raw::Ink::SystemRequestsHandler::InputDeviceId::Ref(handler);
 
     game::GameSessionDesc sessionDesc{};
 
@@ -52,7 +34,7 @@ void session::GameLoader::LoadSavedGameByName(StringView aSaveName) noexcept
     data.AddArgument("gameSessionDesc", &sessionDesc);
     data.AddArgument("inputDeviceID", &inputDeviceId);
 
-    raw::Ink::SystemRequestsHandler::StartSession(handler, &data);
+    shared::raw::Ink::SystemRequestsHandler::StartSession(handler, &data);
 }
 
 void session::GameLoader::LoadGameDefinitionByPath(GameDefinitionLoaderParams aParams) noexcept
@@ -65,7 +47,7 @@ void session::GameLoader::LoadGameDefinitionByPath(GameDefinitionLoaderParams aP
                 if (auto& definition = Cast<gsm::GameDefinition>(aResource))
                 {
                     game::GameSessionDesc sessionDesc{};
-                    raw::GameDefinition::ToWorldID(definition, &sessionDesc.worldId);
+                    shared::raw::GameDefinition::ToWorldID(definition, &sessionDesc.worldId);
 
                     for (auto& quest : definition->mainQuests)
                     {
@@ -92,17 +74,17 @@ void session::GameLoader::LoadGameDefinitionByPath(GameDefinitionLoaderParams aP
                             aParams.m_characterCustomizationState.instance);
                     }
 
-                    SessionData data{};
+                    shared::raw::Ink::SessionData::Data data{};
 
                     data.AddArgument("gameSessionDesc", &sessionDesc);
                     data.AddArgument("spawnTags", &definition->spawnPointTags);
 
-                    auto handler = GetSystemRequestsHandler().Lock();
-                    auto inputDeviceId = raw::Ink::SystemRequestsHandler::InputDeviceId::Ref(handler);
+                    auto handler = shared::raw::Ink::InkSystem::Get()->m_requestsHandler.Lock();
+                    auto inputDeviceId = shared::raw::Ink::SystemRequestsHandler::InputDeviceId::Ref(handler);
 
                     data.AddArgument("inputDeviceID", &inputDeviceId);
 
-                    raw::Ink::SystemRequestsHandler::StartSession(handler, &data);
+                    shared::raw::Ink::SystemRequestsHandler::StartSession(handler, &data);
                 }
             });
 }
@@ -137,12 +119,12 @@ public:
 
     static void ExitToMainMenu()
     {
-        raw::Ink::SystemRequestsHandler::ExitToMenu(session::GameLoader::GetSystemRequestsHandler().Lock());
+        shared::raw::Ink::SystemRequestsHandler::ExitToMenu(shared::raw::Ink::InkSystem::Get()->m_requestsHandler.Lock());
     }
 
     static void TestUnknownSaveThing()
     {
-        raw::Ink::InkSystem::Get()->SetInitialLoadingScreenTDBID("InitLoadingScreen.LoadingScreenAfter113quest");
+        shared::raw::Ink::InkSystem::Get()->SetInitialLoadingScreenTDBID("InitLoadingScreen.LoadingScreenAfter113quest");
     }
 };
 

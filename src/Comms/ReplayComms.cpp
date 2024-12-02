@@ -1,29 +1,26 @@
-#include <Hooks/HookManager/HookManager.hpp>
-#include <Raw/Quest/NodeFuncs.hpp>
-
 #include "ReplayComms.hpp"
 
 #include <RED4ext/Scripting/Natives/Generated/quest/FactsDBManagerNodeDefinition.hpp>
 #include <RED4ext/Scripting/Natives/Generated/quest/SetVar_NodeType.hpp>
 #include <RED4ext/Scripting/Natives/Generated/quest/QuestsSystem.hpp>
 
-#include <Raw/Ink/InkSystem.hpp>
-#include <Raw/Quest/FactsDB.hpp>
-
 #include <Manager/ReplayManager.hpp>
+
+#include <Shared/Hooks/HookManager.hpp>
+#include <Shared/Raw/Quest/NodeFuncs.hpp>
 
 void replay::Comms::Setup() noexcept
 {
-    hook::HookWrap<raw::Quest::FactsDBManager::Execute>(&OnFactsDBManagerNodeDefinition)
+    shared::hook::HookWrap<shared::raw::Quest::FactsDBManager::Execute>(&OnFactsDBManagerNodeDefinition)
         .OrDie("Failed to hook FactsDBManager::Execute");
 }
 
 void replay::Comms::Remove() noexcept
 {
-    hook::Unhook<raw::Quest::FactsDBManager::Execute>();
+    shared::hook::Unhook<shared::raw::Quest::FactsDBManager::Execute>();
 }
 
-char replay::Comms::OnFactsDBManagerNodeDefinition(raw::Quest::FactsDBManager::ExecuteType aCallback,
+char replay::Comms::OnFactsDBManagerNodeDefinition(shared::raw::Quest::FactsDBManager::ExecuteType aCallback,
                                                  quest::NodeDefinition* aThis, void* aCtx, int64_t a3,
                                                  DynArray<CName>& aOutSockets)
 {

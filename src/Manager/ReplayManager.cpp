@@ -3,15 +3,15 @@
 #include <RED4ext/Scripting/Natives/Generated/game/TelemetryTelemetrySystem.hpp>
 #include <RED4ext/Scripting/Natives/Generated/game/ui/CharacterCustomizationSystem.hpp>
 #include <Session/SessionLoader.hpp>
-#include <Util/Core.hpp>
 
 #include <Comms/ReplayComms.hpp>
 
 #include <RED4ext/Scripting/Natives/Generated/quest/QuestsSystem.hpp>
-#include <Raw/Quest/FactsDB.hpp>
 
-#include <Raw/PlayerSystem/PlayerSystem.hpp>
-#include <Raw/ScriptableSystem/ScriptableSystem.hpp>
+#include <Shared/Raw/Ink/InkSystem.hpp>
+#include <Shared/Raw/PlayerSystem/PlayerSystem.hpp>
+#include <Shared/Raw/Quest/QuestsSystem.hpp>
+#include <Shared/Raw/ScriptableSystem/ScriptableSystem.hpp>
 
 #include <RED4ext/Scripting/Natives/Generated/quest/SetProgressionBuildRequest.hpp>
 
@@ -20,9 +20,9 @@ void replay::ReplayManager::OnGamePrepared()
     m_playerSystem = GetGameSystem<cp::PlayerSystem>();
     m_scriptableSystemsContainer = GetGameSystem<game::ScriptableSystemsContainer>();
     m_questsSystem = GetGameSystem<quest::QuestsSystem>();
-    m_inkSystem = raw::Ink::InkSystem::Get();
+    m_inkSystem = shared::raw::Ink::InkSystem::Get();
 
-    // Placeholder, will be used for adding save PONR ID to persistent state
+    // Placeholder, will be used for adding save PONR ID to persistent state/save
     if (m_isLoadingReplay)
     {
         // We've reached replay territory
@@ -67,7 +67,7 @@ void replay::ReplayManager::Tick(JobQueue& aQueue) noexcept
                     SetupInventory();
 
                     // Tell quests system we're good and can continue
-                    raw::Quest::FactsDB(m_questsSystem)->SetFact("replay_init_finished", 1);
+                    shared::raw::QuestsSystem::FactsDB(m_questsSystem)->SetFact("replay_init_finished", 1);
                 });
             break;
         case EReplayRequestType::ReplayEnded:
@@ -76,7 +76,7 @@ void replay::ReplayManager::Tick(JobQueue& aQueue) noexcept
                 {
                     if (m_inkSystem)
                     {
-                        raw::Ink::SystemRequestsHandler::ExitToMenu(m_inkSystem->m_requestsHandler.Lock());
+                        shared::raw::Ink::SystemRequestsHandler::ExitToMenu(m_inkSystem->m_requestsHandler.Lock());
                     }
                     // TODO: match with PONR ID
                 });
@@ -94,12 +94,12 @@ void replay::ReplayManager::OnRegisterUpdates(UpdateRegistrar* aRegistrar)
 
 void replay::ReplayManager::OnInitialize(const JobHandle& aJobHandle)
 {
-    replay::Comms::Setup();
+    Comms::Setup();
 }
 
 void replay::ReplayManager::OnUninitialize()
 {
-    replay::Comms::Remove();
+    Comms::Remove();
 }
 
 void replay::ReplayManager::CapturePointOfNoReturnId() noexcept
@@ -108,12 +108,12 @@ void replay::ReplayManager::CapturePointOfNoReturnId() noexcept
     {
         CString GetPointOfNoReturnID()
         {
-            return util::OffsetPtr<0xD8, CString>::Ref(this);
+            return shared::util::OffsetPtr<0xD8, CString>::Ref(this);
         }
     };
 
     auto telemetrySystem = GetGameSystem<TelemetrySystem>();
-    auto dataContainer = util::OffsetPtr<184, TelemetryDataContainer>::Ptr(telemetrySystem);
+    auto dataContainer = shared::util::OffsetPtr<184, TelemetryDataContainer>::Ptr(telemetrySystem);
 
     if (!dataContainer)
     {
@@ -134,7 +134,7 @@ void replay::ReplayManager::SetupQuestState() noexcept
         m_definedQuestState = {};
     }
 
-    auto& factsDB = raw::Quest::FactsDB::Ref(m_questsSystem);
+    auto& factsDB = shared::raw::QuestsSystem::FactsDB::Ref(m_questsSystem);
 
     for (auto& fact : facts)
     {
@@ -149,7 +149,7 @@ void replay::ReplayManager::SetupPlayerData() noexcept
     {
         Handle<game::Object> playerObject{};
 
-        raw::PlayerSystem::GetPlayerControlledGameObject(m_playerSystem, playerObject);
+        shared::raw::PlayerSystem::GetPlayerControlledGameObject(m_playerSystem, playerObject);
 
         if (!playerObject)
         {
@@ -158,9 +158,8 @@ void replay::ReplayManager::SetupPlayerData() noexcept
 
         Handle<game::ScriptableSystem> playerDevelopmentSystem{};
 
-
-        raw::ScriptableSystemsContainer::GetSystemByName(m_scriptableSystemsContainer, playerDevelopmentSystem,
-                                                         "PlayerDevelopmentSystem");
+        shared::raw::ScriptableSystemsContainer::GetSystemByName(m_scriptableSystemsContainer, playerDevelopmentSystem,
+                                                                 "PlayerDevelopmentSystem");
 
         if (!playerDevelopmentSystem)
         {
@@ -172,7 +171,7 @@ void replay::ReplayManager::SetupPlayerData() noexcept
         setProgressionBuildReq->owner = playerObject;
         setProgressionBuildReq->buildID = c_debugProgressionBuildTDBID;
 
-        raw::ScriptableSystem::QueueRequest(playerDevelopmentSystem, setProgressionBuildReq);
+        shared::raw::ScriptableSystem::QueueRequest(playerDevelopmentSystem, setProgressionBuildReq);
     }
 }
 
@@ -184,10 +183,10 @@ ResourcePath replay::ReplayManager::GetGameDefinition(EReplayGameDefinition aDef
 {
     switch (aDefinition)
     {
-    case EReplayGameDefinition::ReplayTestGameDefinition:
+    case EReplayGameDefinition::Q113:
         return R"(mod\quest\replay\q113\replay_q113.gamedef)";
-    case EReplayGameDefinition::BossRush:
-        return R"(mod\quest\replay\boss_rush\replay_boss_rush.gamedef)";
+    case EReplayGameDefinition::Q115:
+        return R"(mod\quest\replay\q115\replay_q115.gamedef)";
     default:
         return "";
     }
@@ -198,7 +197,8 @@ void replay::ReplayManager::StartReplayGameDefinition(EReplayGameDefinition aDef
     auto characterCustomizationSystem = GetGameSystem<game::ui::CharacterCustomizationSystem>();
 
     auto& characterCustomizationState =
-        util::OffsetPtr<0x78, Handle<game::ui::ICharacterCustomizationState>>::Ref(characterCustomizationSystem);
+        shared::util::OffsetPtr<0x78, Handle<game::ui::ICharacterCustomizationState>>::Ref(
+            characterCustomizationSystem);
 
     session::GameLoader::GameDefinitionLoaderParams params{};
 

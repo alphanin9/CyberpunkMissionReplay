@@ -3,8 +3,9 @@
 #include <RED4ext/Scripting/Natives/Generated/cp/PlayerSystem.hpp>
 #include <RED4ext/Scripting/Natives/Generated/game/ScriptableSystemsContainer.hpp>
 #include <RED4ext/Scripting/Natives/Generated/quest/QuestsSystem.hpp>
-#include <Raw/Ink/InkSystem.hpp>
 #include <RedLib.hpp>
+
+#include <Shared/Raw/Ink/InkSystem.hpp>
 
 using namespace Red;
 
@@ -12,8 +13,9 @@ namespace replay
 {
 enum class EReplayGameDefinition : int
 {
-    ReplayTestGameDefinition = 0,
-    BossRush = 1
+    Q113,
+    Q115,
+    Q306
 };
 
 enum class EReplayRequestType
@@ -64,7 +66,7 @@ class ReplayManager : public IGameSystem
     cp::PlayerSystem* m_playerSystem{};
     game::ScriptableSystemsContainer* m_scriptableSystemsContainer{};
     quest::QuestsSystem* m_questsSystem{};
-    raw::Ink::InkSystem* m_inkSystem{};
+    shared::raw::Ink::InkSystem* m_inkSystem{};
 
     ResourcePath GetGameDefinition(EReplayGameDefinition aDefinition) noexcept;
 
