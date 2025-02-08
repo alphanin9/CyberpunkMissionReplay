@@ -9,6 +9,11 @@
 #include <Shared/Hooks/HookManager.hpp>
 #include <Shared/Raw/Quest/NodeFuncs.hpp>
 
+/**
+ * A note: we have initial support for dynamic quest nodes now
+ * Might no longer need FDBManager hook
+ */
+
 void replay::Comms::Setup() noexcept
 {
     shared::hook::HookWrap<shared::raw::Quest::FactsDBManager::Execute>(&OnFactsDBManagerNodeDefinition)
@@ -50,17 +55,13 @@ char replay::Comms::OnFactsDBManagerNodeDefinition(shared::raw::Quest::FactsDBMa
 
             if (factName == c_replayInitCommand)
             {
-                std::unique_lock _(s_replayRequestLock);
-                s_replayRequests.PushBack(EReplayRequestType::ReplayStarted);
-
+                replay::ReplayManager::GetInstance()->AddRequest(EReplayRequestType::ReplayStarted);
                 aOutSockets.PushBack("ReplayInit");
                 return 0;
             }
             else if (factName == c_replayExitCommand)
             {
-                std::unique_lock _(s_replayRequestLock);
-                s_replayRequests.PushBack(EReplayRequestType::ReplayEnded);
-
+                replay::ReplayManager::GetInstance()->AddRequest(EReplayRequestType::ReplayEnded);
                 aOutSockets.PushBack("ReplayExit");
                 return 0;
             }

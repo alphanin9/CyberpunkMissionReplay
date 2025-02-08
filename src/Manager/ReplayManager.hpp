@@ -52,8 +52,13 @@ public:
 
 class ReplayManager : public IGameSystem
 {
-    static constexpr auto c_useStaticProgressionBuild = true;
-    static constexpr TweakDBID c_debugProgressionBuildTDBID = "ProgressionBuilds.VHard_50_RefBody";
+    static constexpr auto UseStaticProgressionBuild = true;
+    static constexpr TweakDBID DebugProgressionBuildTDBID = "ProgressionBuilds.VHard_50_RefBody";
+
+    inline static ReplayManager* s_this{};
+
+    DynArray<EReplayRequestType> m_replayRequests{};
+    SharedSpinLock m_replayRequestLock{};
 
     SharedSpinLock m_replayLock{};
 
@@ -99,6 +104,10 @@ public:
     // Exported to RTTI
     // Sets quest state based on player wishes
     void SetQuestState(DynArray<Handle<ReplayFactDefinition>>& aFacts);
+
+    void AddRequest(EReplayRequestType aRequest) noexcept;
+
+    static ReplayManager* GetInstance() noexcept;
 
     RTTI_IMPL_TYPEINFO(ReplayManager);
     RTTI_IMPL_ALLOCATOR();

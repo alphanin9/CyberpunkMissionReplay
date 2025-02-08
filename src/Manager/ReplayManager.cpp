@@ -15,6 +15,18 @@
 
 #include <RED4ext/Scripting/Natives/Generated/quest/SetProgressionBuildRequest.hpp>
 
+replay::ReplayManager* replay::ReplayManager::GetInstance() noexcept
+{
+    return s_this;
+}
+
+void replay::ReplayManager::AddRequest(EReplayRequestType aRequest) noexcept
+{
+    std::lock_guard _(m_replayRequestLock);
+
+    m_replayRequests.PushBack(aRequest);
+}
+
 void replay::ReplayManager::OnGamePrepared()
 {
     m_playerSystem = GetGameSystem<cp::PlayerSystem>();
@@ -44,9 +56,9 @@ void replay::ReplayManager::Tick(JobQueue& aQueue) noexcept
 {
     DynArray<EReplayRequestType> requests{};
     {
-        std::unique_lock _(Comms::s_replayRequestLock);
-        requests = std::move(Comms::s_replayRequests);
-        Comms::s_replayRequests = DynArray<EReplayRequestType>();
+        std::lock_guard _(m_replayRequestLock);
+        requests = std::move(m_replayRequests);
+        m_replayRequests = DynArray<EReplayRequestType>{};
     }
 
     for (auto request : requests)
@@ -94,6 +106,8 @@ void replay::ReplayManager::OnRegisterUpdates(UpdateRegistrar* aRegistrar)
 
 void replay::ReplayManager::OnInitialize(const JobHandle& aJobHandle)
 {
+    s_this = this;
+
     Comms::Setup();
 }
 
@@ -145,7 +159,7 @@ void replay::ReplayManager::SetupQuestState() noexcept
 void replay::ReplayManager::SetupPlayerData() noexcept
 {
     // Player data is not currently setup for testing
-    if (c_useStaticProgressionBuild)
+    if (UseStaticProgressionBuild)
     {
         Handle<game::Object> playerObject{};
 
@@ -169,7 +183,7 @@ void replay::ReplayManager::SetupPlayerData() noexcept
         auto setProgressionBuildReq = MakeHandle<quest::SetProgressionBuildRequest>();
 
         setProgressionBuildReq->owner = playerObject;
-        setProgressionBuildReq->buildID = c_debugProgressionBuildTDBID;
+        setProgressionBuildReq->buildID = DebugProgressionBuildTDBID;
 
         shared::raw::ScriptableSystem::QueueRequest(playerDevelopmentSystem, setProgressionBuildReq);
     }
