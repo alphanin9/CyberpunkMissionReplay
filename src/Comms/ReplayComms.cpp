@@ -50,16 +50,16 @@ char replay::Comms::OnFactsDBManagerNodeDefinition(shared::raw::Quest::FactsDBMa
 
             factName.remove_prefix(std::char_traits<char>::length(c_replayCallPrefix));
 
-            constexpr auto c_replayInitCommand = "INITIALIZE_ALL";
-            constexpr auto c_replayExitCommand = "FINISHED";
+            constexpr auto ReplayInitCommand = "INITIALIZE_ALL";
+            constexpr auto ReplayExitCommand = "FINISHED";
 
-            if (factName == c_replayInitCommand)
+            if (factName == ReplayInitCommand)
             {
                 replay::ReplayManager::GetInstance()->AddRequest(EReplayRequestType::ReplayStarted);
                 aOutSockets.PushBack("ReplayInit");
                 return 0;
             }
-            else if (factName == c_replayExitCommand)
+            else if (factName == ReplayExitCommand)
             {
                 replay::ReplayManager::GetInstance()->AddRequest(EReplayRequestType::ReplayEnded);
                 aOutSockets.PushBack("ReplayExit");

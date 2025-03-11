@@ -382,3 +382,9 @@ src/Config/*
 
 # VS Code
 .vscode/
+
+# WolvenKit project stuff
+wolvenkit/.projectFiles/
+wolvenkit/GraphEditorStates
+wolvenkit/install_log.xml
+wolvenkit/layout.xml
