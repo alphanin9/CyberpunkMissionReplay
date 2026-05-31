@@ -41,9 +41,9 @@ The replays already scaffolded in the WolvenKit project:
 
 | Folder      | Mission(s)                          | Notes                          |
 |-------------|-------------------------------------|--------------------------------|
-| `q113`      | The Heist                           | gamedef + quest                |
-| `q115`      | (Act 1 finale era)                  | gamedef + quest                |
-| `q306`      | (Act 3)                             | gamedef + quest + questphase   |
+| `q113`      | Devil ending                        | gamedef + quest                |
+| `q115`      | Rogue ending                        | gamedef + quest                |
+| `q306`      | PL Songbird path                    | gamedef + quest + questphase   |
 | `boss_rush` | composite: q003 (Royce), q110 (mall)| gamedef + quest + phases       |
 | `smasher`   | Adam Smasher fight                  | questphase util                |
 
