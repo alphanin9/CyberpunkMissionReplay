@@ -3,6 +3,8 @@
 #include <RedLib.hpp>
 #include <Shared/Util/NamePoolRegistrar.hpp>
 
+#include <string>
+
 namespace
 {
 RED4ext::v1::PluginHandle s_handle{};
@@ -14,7 +16,7 @@ void PostChannel(const char* aPrefix, const char* aMessage) noexcept
 {
     // Surfacing in CET via Red::Log::Channel routes through RTTI's LogChannel,
     // which expects the name pool to know the channel CName.
-    Red::Log::Channel(ChannelName::Get(), Red::CString(aPrefix) + Red::CString(aMessage));
+    Red::Log::Channel(ChannelName::Get(), std::string(aPrefix) + aMessage);
 }
 } // namespace
 
