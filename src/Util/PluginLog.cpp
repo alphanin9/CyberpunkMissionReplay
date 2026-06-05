@@ -2,11 +2,11 @@
 
 namespace
 {
-RED4ext::PluginHandle s_handle{};
-const RED4ext::Sdk* s_sdk{};
+RED4ext::v1::PluginHandle s_handle{};
+const RED4ext::v1::Sdk* s_sdk{};
 } // namespace
 
-void replay::log::Bind(RED4ext::PluginHandle aHandle, const RED4ext::Sdk* aSdk) noexcept
+void replay::log::Bind(RED4ext::v1::PluginHandle aHandle, const RED4ext::v1::Sdk* aSdk) noexcept
 {
     s_handle = aHandle;
     s_sdk = aSdk;
