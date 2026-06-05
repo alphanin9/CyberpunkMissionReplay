@@ -49,7 +49,8 @@ Handle<game::ui::CharacterCustomizationState> CaptureCharacterCustomization() no
     auto system = GetGameSystem<game::ui::CharacterCustomizationSystem>();
     if (!system)
         return {};
-    return shared::util::OffsetPtr<0x78, Handle<game::ui::ICharacterCustomizationState>>::Ref(system);
+    auto& iface = shared::util::OffsetPtr<0x78, Handle<game::ui::ICharacterCustomizationState>>::Ref(system);
+    return Cast<game::ui::CharacterCustomizationState>(iface);
 }
 } // namespace
 
