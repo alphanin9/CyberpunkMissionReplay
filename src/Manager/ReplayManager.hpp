@@ -11,40 +11,22 @@ using namespace Red;
 
 namespace replay
 {
-enum class EReplayGameDefinition : int
-{
-    Q113,
-    Q115,
-    Q306
-};
-
 enum class EReplayRequestType
 {
     ReplayStarted,
     ReplayEnded
 };
 
-// Set up quest state via facts
-// Theoretically use for launching different phases of quest as well (maybe straight to some fight?)
-// For example for Q113:
-// Did we get told about Jackie in Mikoshi?
-// Is Takemura alive?
-// Is Oda alive?
+// Set up quest state via facts. Used for staging both per-mission default presets and
+// player-chosen overrides (Takemura alive / Oda alive / Jackie told, etc.).
 class ReplayFactDefinition : public IScriptable
 {
 public:
     CString m_factName{};
     int m_factValue{};
 
-    void SetFactName(CString aName)
-    {
-        m_factName = aName;
-    }
-
-    void SetFactValue(int aValue)
-    {
-        m_factValue = aValue;
-    }
+    void SetFactName(CString aName) { m_factName = aName; }
+    void SetFactValue(int aValue) { m_factValue = aValue; }
 
     RTTI_IMPL_TYPEINFO(ReplayFactDefinition);
     RTTI_IMPL_ALLOCATOR();
@@ -52,40 +34,36 @@ public:
 
 class ReplayManager : public IGameSystem
 {
-    static constexpr auto UseStaticProgressionBuild = true;
-    static constexpr TweakDBID DebugProgressionBuildTDBID = "ProgressionBuilds.VHard_50_RefBody";
+    // Player progression / inventory default to live-state capture; this toggle keeps
+    // the legacy static-build path available as a debug fallback (plan §3.1).
+    static constexpr bool kUseStaticProgressionBuild = false;
+    static constexpr TweakDBID kDebugProgressionBuildTDBID = "ProgressionBuilds.VHard_50_RefBody";
 
     inline static ReplayManager* s_this{};
 
     DynArray<EReplayRequestType> m_replayRequests{};
     SharedSpinLock m_replayRequestLock{};
 
-    SharedSpinLock m_replayLock{};
-
-    CString m_pointOfNoReturnId{};
-    bool m_isLoadingReplay{};
-
-    // Quest state we have defined by player settings
-    DynArray<Handle<ReplayFactDefinition>> m_definedQuestState{};
-
     cp::PlayerSystem* m_playerSystem{};
     game::ScriptableSystemsContainer* m_scriptableSystemsContainer{};
     quest::QuestsSystem* m_questsSystem{};
     shared::raw::Ink::InkSystem* m_inkSystem{};
 
-    ResourcePath GetGameDefinition(EReplayGameDefinition aDefinition) noexcept;
-
-    // Setup correct quest state based on options
+    // Setup correct quest state based on staged facts + mission preset.
     void SetupQuestState() noexcept;
 
-    // Setup correct player data based on options, maybe select progression build instead
+    // Apply captured player progression (preferred) or the debug build (fallback).
     void SetupPlayerData() noexcept;
 
-    // Setup correct inventory based on options, ignored in case of progression build
+    // Re-grant captured inventory and re-equip.
     void SetupInventory() noexcept;
 
-    // Before starting game, we make PONR save (how?)
-    void CapturePointOfNoReturnId() noexcept;
+    // Capture the current telemetry PONR id and the origin save name into the session
+    // context so ReplayEnded can resume the player's prior save.
+    void CaptureReturnTarget() noexcept;
+
+    // Resume the saved game named in the session context, or fall back to ExitToMenu.
+    void ResumeOrExit() noexcept;
 
     void Tick(JobQueue& aQueue) noexcept;
 
@@ -97,13 +75,24 @@ public:
     void OnInitialize(const JobHandle& aJob) override;
     void OnUninitialize() override;
 
-    // Exported to RTTI
-    // Starts game definition, sets things up for it so runtime doesn't need to think too much
-    void StartReplayGameDefinition(EReplayGameDefinition aDefinition);
+    // Exported to RTTI / CET.
+    // Launches a mission by catalog id (e.g. "q113"). Captures live-session state into
+    // ReplaySessionContext, then issues the gamedef load. Returns false if the id is
+    // unknown or capture fails to find required systems.
+    bool StartReplayById(CString aMissionId);
 
-    // Exported to RTTI
-    // Sets quest state based on player wishes
+    // Stage caller-chosen facts onto the next replay's quest setup. Merged with the
+    // selected mission's default preset at apply time.
     void SetQuestState(DynArray<Handle<ReplayFactDefinition>>& aFacts);
+
+    // Cancel any pending replay context (does NOT reload a save — fire ReplayEnded for
+    // an in-progress replay to abort cleanly).
+    void ClearPendingReplay();
+
+    // Mission catalog passthrough (lets CET drive a debug "list missions" without UI).
+    std::uint32_t GetMissionCount();
+    CString GetMissionId(std::uint32_t aIndex);
+    CString GetMissionDisplayName(std::uint32_t aIndex);
 
     void AddRequest(EReplayRequestType aRequest) noexcept;
 

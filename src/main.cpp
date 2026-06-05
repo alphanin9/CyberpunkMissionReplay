@@ -3,6 +3,7 @@
 
 #include <Config/ProjectTemplate.hpp>
 #include <Comms/ReplayComms.hpp>
+#include <Util/PluginLog.hpp>
 
 using namespace Red;
 
@@ -10,6 +11,7 @@ namespace init {
 	RED4EXT_C_EXPORT bool RED4EXT_CALL Main(PluginHandle aHandle, EMainReason aReason, const Sdk* aSdk) {
 		switch (aReason) {
 		case EMainReason::Load:
+			replay::log::Bind(aHandle, aSdk);
 			TypeInfoRegistrar::RegisterDiscovered();
 			break;
 		}
