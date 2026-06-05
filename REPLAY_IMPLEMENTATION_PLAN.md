@@ -5,9 +5,8 @@
 > current RED4ext/RedLib/SharedPunk native plugin and the WolvenKit quest
 > project.
 >
-> Environment note: Cyberpunk 2077 is **not installed on this machine** and no
-> game binary is available, so nothing below is grounded in IDA. Claims about
-> engine internals (offsets, system lifetimes, telemetry layout) are marked as
+> Environment note: Cyberpunk 2077 is **not installed on this machine**, but an IDA database and `cyberpunk2077_addresses.json` are available in the same directory as RED4ext.SDK/RedLib/Redscript for skill sources cache. 
+> Claims about engine internals (offsets, system lifetimes, telemetry layout) are marked as
 > **[verify in-game]** where they need confirmation against a live build,
 > NativeDB/Cyberdoc, or the decompiled scripts.
 
@@ -168,14 +167,14 @@ context can stay on the manager, but the safer assumption is that they do not.
 0.1 **Confirm game-system lifetime across `StartSession`.** Add temporary
     logging in `OnInitialize`/`OnUninitialize`/`OnWorldDetached` and observe
     whether `ReplayManager` is destroyed/recreated on a replay launch. This
-    decides whether section 3's split is mandatory. **[verify in-game]**
+    decides whether section 3's split is mandatory. **[verify in-game]** (author note: game systems are created once on game start and do not get destructed until the game exits)
 
 0.2 **Confirm the telemetry PONR offsets** (`184` → `0xD8`) against a current
     build via RTTI dump / NativeDB / decompiled `TelemetrySystem`. Wrap the raw
     offset reads with `RED4EXT_ASSERT_*` once confirmed. **[verify in-game]**
 
 0.3 **Decide the comms mechanism** (Phase 5). Keep the FactsDBManager hook for
-    now; spike a dynamic quest node in parallel.
+    now; spike a dynamic quest node in parallel. (author note: Dynamic quest node is most likely correct mechanism, but quests system is not understood enough by author yet - to agent: research how non-immediately executing nodes work)
 
 ### Phase 1 — Mission catalog + entry UI
 
@@ -520,7 +519,7 @@ Each replayable mission must:
   right pattern; keep setup on the `PostBuckets` tick and re-check validity.
 - **Threading**: quest callbacks run off the main thread; continue funnelling
   through `AddRequest`/`Tick` and the existing spinlocks — do not touch live
-  game systems directly from the hook.
+  game systems directly from the hook. (author note: quest callbacks run on whatever job dispatcher the quest system tick dropped this time around - the game is heavily multithreaded)
 - **Clean-slate assumptions leaking**: a quest tree that quietly relies on
   prior state will fail only at runtime in the replay session; the authoring
   contract (section 5) is the mitigation.
