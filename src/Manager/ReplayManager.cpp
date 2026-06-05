@@ -22,14 +22,18 @@ namespace
 {
 using namespace Red;
 
-// Telemetry data container layout, kept here until the PONR offsets are confirmed via
-// RTTI/decompiled scripts (plan §0.2). Both reads are guarded so a layout drift just
-// surfaces as a missing return target rather than a crash.
+constexpr auto c_telemetryPlaythroughDataOffset = 0xB8;
+constexpr auto c_telemetryPlaythroughIdOffset = 0x98;
+constexpr auto c_telemetryPointOfNoReturnIdOffset = 0xD8;
+
+// Binary-confirmed in Cyberpunk2077.exe.i64:
+// TelemetrySystem + 0xB8 points at the telemetry playthrough data node.
+// That node serializes "playthroughID" from +0x98 and "pointOfNoReturnId" from +0xD8.
 struct TelemetryDataContainer
 {
     CString GetPointOfNoReturnID()
     {
-        return shared::util::OffsetPtr<0xD8, CString>::Ref(this);
+        return shared::util::OffsetPtr<c_telemetryPointOfNoReturnIdOffset, CString>::Ref(this);
     }
 };
 
@@ -38,7 +42,8 @@ CString ReadPointOfNoReturnId() noexcept
     auto telemetrySystem = GetGameSystem<TelemetrySystem>();
     if (!telemetrySystem)
         return {};
-    auto dataContainer = shared::util::OffsetPtr<184, TelemetryDataContainer>::Ptr(telemetrySystem);
+    auto dataContainer =
+        shared::util::OffsetPtr<c_telemetryPlaythroughDataOffset, TelemetryDataContainer*>::Ptr(telemetrySystem);
     if (!dataContainer)
         return {};
     return dataContainer->GetPointOfNoReturnID();
