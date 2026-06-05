@@ -13,7 +13,7 @@ set_optimize("faster")
 add_cxxflags("/Zi /Ob2 /Oi /GL")
 set_runtimes("MD")
 
-add_requires("semver")
+add_requires("safetyhook", "semver")
 
 local cp2077_path = os.getenv("CP2077_PATH")
 local plugin_folder_path = "red4ext/plugins/MissionReplay"
@@ -30,7 +30,7 @@ target("Mission Replay")
     includes("deps/sharedpunk/xmake.lua")
     add_deps("red4ext.sdk", "redlib", "cp2077-shared-data")
 
-    add_packages("semver")
+    add_packages("safetyhook", "semver")
     add_syslinks("Version", "User32")
     add_defines("WINVER=0x0601", "WIN32_LEAN_AND_MEAN", "NOMINMAX")
     set_configdir("src")
