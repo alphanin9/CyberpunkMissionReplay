@@ -159,7 +159,7 @@ void replay::ReplayManager::ResumeOrExit() noexcept
     const auto& target = ReplaySessionContext::Get().m_returnTarget;
     if (!target.m_originSaveName.empty())
     {
-        session::GameLoader::LoadSavedGameByName(target.m_originSaveName);
+        session::GameLoader::LoadSavedGameByName(target.m_originSaveName.c_str());
         return;
     }
     if (m_inkSystem)
