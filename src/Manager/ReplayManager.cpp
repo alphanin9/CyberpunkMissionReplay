@@ -257,8 +257,8 @@ bool replay::ReplayManager::StartReplayById(CString aMissionId)
 void replay::ReplayManager::SetQuestState(DynArray<Handle<ReplayFactDefinition>>& aFacts)
 {
     std::vector<ReplayFactPreset> staged{};
-    staged.reserve(aFacts.size);
-    for (uint32_t i = 0; i < aFacts.size; ++i)
+    staged.reserve(aFacts.size());
+    for (uint32_t i = 0; i < aFacts.size(); ++i)
     {
         if (!aFacts[i])
             continue;

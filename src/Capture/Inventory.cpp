@@ -100,8 +100,8 @@ void CaptureItems(game::TransactionSystem* aTransactionSystem, const Handle<game
         replay::log::Warn("Inventory::Capture: GetItemList failed");
         return;
     }
-    aOut.m_items.reserve(items.size);
-    for (uint32_t i = 0; i < items.size; ++i)
+    aOut.m_items.reserve(items.size());
+    for (uint32_t i = 0; i < items.size(); ++i)
     {
         auto data = items[i].Lock();
         if (!data)

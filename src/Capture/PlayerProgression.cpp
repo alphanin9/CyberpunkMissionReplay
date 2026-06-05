@@ -60,7 +60,7 @@ void ForEachEnumValue(CName aEnumName, F&& aVisitor)
         return;
 
     auto enumType = static_cast<CEnum*>(type);
-    const auto count = enumType->valueList.size;
+    const auto count = enumType->valueList.size();
     for (uint32_t i = 0; i < count; ++i)
     {
         const auto name = enumType->hashList[i].ToString();
@@ -94,8 +94,8 @@ void CaptureAttributes(const Handle<game::ScriptableSystem>& aSystem, PlayerProg
     DynArray<SAttribute> attributes{};
     if (!CallVirtual(aSystem.instance, kGetAttributes, attributes))
         return;
-    aOut.m_attributes.reserve(attributes.size);
-    for (uint32_t i = 0; i < attributes.size; ++i)
+    aOut.m_attributes.reserve(attributes.size());
+    for (uint32_t i = 0; i < attributes.size(); ++i)
     {
         aOut.m_attributes.push_back({attributes[i].attributeName, attributes[i].value});
     }

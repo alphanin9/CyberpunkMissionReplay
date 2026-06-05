@@ -1,5 +1,7 @@
 #pragma once
 #include <RED4ext/RED4ext.hpp>
+#include <RED4ext/Scripting/Natives/Generated/cp/PlayerSystem.hpp>
+#include <RED4ext/Scripting/Natives/Generated/game/ScriptableSystemsContainer.hpp>
 #include <RedLib.hpp>
 
 #include <Session/ReplaySessionContext.hpp>
