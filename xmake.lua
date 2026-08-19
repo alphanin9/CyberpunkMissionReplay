@@ -13,7 +13,11 @@ set_optimize("faster")
 add_cxxflags("/Zi /Ob2 /Oi /GL")
 set_runtimes("MD")
 
+-- RED4ext.SDK, RedLib and SharedPunk come from the CP2077 package registry.
+add_repositories("cp2077-repo https://gitlab.com/alphanin9/cp2077-xmake-repo.git")
+
 add_requires("safetyhook", "semver")
+add_requires("red4ext-sdk", "red-lib", "sharedpunk")
 
 local cp2077_path = os.getenv("CP2077_PATH")
 local plugin_folder_path = "red4ext/plugins/MissionReplay"
@@ -27,10 +31,7 @@ target("Mission Replay")
     add_headerfiles("src/**.hpp")
     add_includedirs("src/")
 
-    includes("deps/sharedpunk/xmake.lua")
-    add_deps("red4ext.sdk", "redlib", "cp2077-shared-data")
-
-    add_packages("safetyhook", "semver")
+    add_packages("safetyhook", "semver", "red4ext-sdk", "red-lib", "sharedpunk")
     add_syslinks("Version", "User32")
     add_defines("WINVER=0x0601", "WIN32_LEAN_AND_MEAN", "NOMINMAX")
     set_configdir("src")
@@ -90,22 +91,5 @@ target("Mission Replay")
     on_run(function(target)
         os.run(path.join(cp2077_path, "bin", "x64", "Cyberpunk2077.exe"))
     end)
-
-target("red4ext.sdk")
-    set_default(false)
-    set_kind("headeronly")
-    set_group("deps")
-    add_headerfiles("deps/red4ext.sdk/include/**.hpp")
-    add_includedirs("deps/red4ext.sdk/include/", { public = true })
-
-target("redlib")
-    set_default(false)
-    set_kind("headeronly")
-    set_group("deps")
-    add_defines("NOMINMAX")
-    add_headerfiles("deps/redlib/vendor/**.hpp")
-    add_headerfiles("deps/redlib/include/**.hpp")
-    add_includedirs("deps/redlib/vendor/", { public = true })
-    add_includedirs("deps/redlib/include/", { public = true })
 
 add_rules("plugin.vsxmake.autoupdate")
